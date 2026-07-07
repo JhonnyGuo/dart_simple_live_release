@@ -1,131 +1,65 @@
 name: Build and Release Windows EXE
 
-
-
 on:
-
   workflow_dispatch:
 
-
-
 jobs:
-
   build:
-
     runs-on: windows-latest
 
-
-
     steps:
-
       - name: Checkout repository
-
         uses: actions/checkout@v5
-
         with:
-
           submodules: false
 
-
-
       - name: Set up Flutter
-
         uses: subosito/flutter-action@v2
-
         with:
-
           channel: 'stable'
 
-
-
       - name: Install dependencies
-
         run: |
-
           cd simple_live_app
-
           flutter pub get
 
-
-
       - name: Enable Windows Build
-
         run: |
-
+          cd simple_live_app
           flutter config --enable-windows-desktop
 
-
-
       - name: Inject Fix for MSVC Deprecation Error
-
         shell: bash
-
         run: |
-
           cd simple_live_app/windows
-
-          
-
           printf "add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)\n\n" > CMakeLists.txt.tmp
-
           cat CMakeLists.txt >> CMakeLists.txt.tmp
-
           mv CMakeLists.txt.tmp CMakeLists.txt
-
-          
-
           echo "==== 成功将 MSVC 静默宏注入顶层 CMake 配置 ===="
 
-
-
       - name: Build Windows App
-
         run: |
-
           cd simple_live_app
-
           flutter build windows --release
 
-
-
       - name: Package and Release to GitHub
-
         shell: pwsh
-
         env:
-
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
         run: |
-
           $buildDir = Get-ChildItem -Path . -Filter "Release" -Recurse | Where-Object { $_.FullName -like "*build*x64*runner*" } | Select-Object -First 1
-
           if ($null -eq $buildDir) {
-
               Write-Error "找不到编译产出的 Release 目录，请检查 flutter build 是否成功！"
-
               exit 1
-
           }
-
           Write-Host "成功找到编译产出路径: $($buildDir.FullName)"
-
           $zipPath = "$(Get-Location)/simple_live_windows.zip"
-
           if (Test-Path $zipPath) { Remove-Item $zipPath }
-
           Compress-Archive -Path "$($buildDir.FullName)\*" -DestinationPath $zipPath -Force
-
           Write-Host "ZIP 打包成功，保存至: $zipPath"
-
           $tagName = "win_v$(Get-Date (Get-Date).ToUniversalTime() -Format 'yyyyMMdd_HHmm')"
-
           Write-Host "开始创建 Release, Tag 名为: $tagName"
-
           gh release create "$tagName" `
-
             --title "自动编译Windows版 $tagName" `
-
             --notes "由 GitHub Actions 自动编译生成" `
-
             $zipPath
