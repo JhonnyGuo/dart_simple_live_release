@@ -20,9 +20,14 @@ jobs:
       - name: Prepare and Build Windows App
         working-directory: simple_live_app
         run: |
-          Add-Content windows/CMakeLists.txt "`nadd_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)"
           flutter pub get
           flutter config --enable-windows-desktop
+          
+          if (-not (Test-Path "windows/flutter")) {
+              mkdir "windows/flutter"
+          }
+          Add-Content windows/flutter/generated_plugins.cmake "`nadd_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)"
+          
           flutter build windows --release
 
       - name: Package and Release to GitHub
