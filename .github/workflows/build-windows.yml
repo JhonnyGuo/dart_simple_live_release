@@ -1,0 +1,50 @@
+name: Build and Release Windows EXE
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          submodules: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: |
+          cd simple_live_app
+          flutter pub get
+
+      - name: Enable Windows Build
+        run: |
+          flutter config --enable-windows-desktop
+
+      - name: Build Windows App
+        run: |
+          cd simple_live_app
+          flutter build windows --release
+
+      - name: Package to ZIP
+        shell: pwsh
+        run: |
+          cd simple_live_app/build/windows/x64/runner/Release
+          Compress-Archive -Path * -DestinationPath ../../../../../simple_live_windows.zip
+
+      - name: Create Release and Upload ZIP
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          TAG_NAME="win-v${{ github.run_number }}"
+          gh release create "$TAG_NAME" \
+            --title "自动编译Windows版 $TAG_NAME" \
+            --notes "由 GitHub Actions 自动编译生成的 Windows 绿色版桌面程序，解压后运行即可。" \
+            simple_live_windows.zip
