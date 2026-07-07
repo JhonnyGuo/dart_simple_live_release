@@ -58,9 +58,9 @@ jobs:
           if (Test-Path $zipPath) { Remove-Item $zipPath }
           Compress-Archive -Path "$($buildDir.FullName)\*" -DestinationPath $zipPath -Force
           Write-Host "ZIP 打包成功，保存至: $zipPath"
-          $tagName = "win-v$(Get-Date (Get-Date).ToUniversalTime() -Format 'yyyyMMdd-HHmm')"
+          $tagName = "win_v$(Get-Date (Get-Date).ToUniversalTime() -Format 'yyyyMMdd_HHmm')"
           Write-Host "开始创建 Release, Tag 名为: $tagName"
           gh release create "$tagName" `
             --title "自动编译Windows版 $tagName" `
-            --notes "由 GitHub Actions 自动编译生成的 Windows 绿色版桌面程序，解压后运行即可。" `
+            --notes "由 GitHub Actions 自动编译生成的 Windows 版，解压后运行即可。" `
             $zipPath
