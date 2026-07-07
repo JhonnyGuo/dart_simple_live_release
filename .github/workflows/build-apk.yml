@@ -1,7 +1,7 @@
 name: Build and Release APK
 
 on:
-  workflow_dispatch: # 允许你手动点击按钮触发打包
+  workflow_dispatch: 
 
 jobs:
   build:
@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: false  
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -36,7 +38,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: "v${{ github.run_number }}"
-          name: "自动编译手机版 v${{ github.run_number }}"
+          name: "自动编译 v${{ github.run_number }}"
           draft: false
           prerelease: false
           files: simple_live_app/build/app/outputs/flutter-apk/app-release.apk
