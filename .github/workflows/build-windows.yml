@@ -62,5 +62,5 @@ jobs:
           Write-Host "开始创建 Release, Tag 名为: $tagName"
           gh release create "$tagName" `
             --title "自动编译Windows版 $tagName" `
-            --notes "由 GitHub Actions 自动编译生成的 Windows 版，解压后运行即可。" `
+            --notes "由 GitHub Actions 自动编译生成。" `
             $zipPath
